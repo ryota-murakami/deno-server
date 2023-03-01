@@ -1,8 +1,21 @@
-export function add(a: number, b: number): number {
-  return a + b;
+const server = Deno.listen({port: 8080})
+console.log('HTTP webserver running. Access it at: http://localhost:8080/')
+
+for await (const conn of server) {
+  serverHttp(conn)
 }
 
-// Learn more at https://deno.land/manual/examples/module_metadata#concepts
-if (import.meta.main) {
-  console.log("Add 2 + 3 =", add(2, 3));
+async function serverHttp(conn :Deno.Conn) {
+  const httpConn = Deno.serveHttp(conn)
+  for await (const requestEvent of httpConn) {
+    const body = `Your user-agent is:\n\n${
+      requestEvent.request.headers.get("user-agent") ?? "Unknown"
+    }`;
+
+    requestEvent.respondWith(
+    new Response(body, {
+      status: 200,
+    })
+    )
+  }
 }
